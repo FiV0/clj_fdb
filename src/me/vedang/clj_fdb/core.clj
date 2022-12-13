@@ -156,6 +156,29 @@
                          {}
                          (ftr/get-range tr rg)))))))
 
+(defn get-range2
+  ([^TransactionContext tc begin end]
+   (get-range2 tc begin end {}))
+  ([^TransactionContext tc begin end {:keys [limit] :as opts}]
+   (let [key-decoder fimpl/decode
+         keyfn (comp (:keyfn opts identity) key-decoder)
+         valfn (comp (:valfn opts identity) fimpl/decode)]
+     (ftr/read tc
+               (fn [^Transaction tr]
+                 (->> (if limit
+                        (ftr/get-range tr begin end limit)
+                        (ftr/get-range tr begin end))
+                      (map (fn [^KeyValue kv] (vector (keyfn (.getKey kv)) (valfn (.getValue kv)) )))
+                      doall)
+                 #_(reduce (fn [acc ^KeyValue kv]
+                             (assoc acc
+                                    (keyfn (.getKey kv))
+                                    (valfn (.getValue kv))))
+                           {}
+                           (if limit
+                             (ftr/get-range tr begin end limit)
+                             (ftr/get-range tr begin end))))))))
+
 
 (defn clear-range
   "Takes the following:

@@ -33,6 +33,7 @@
   ([^Subspace s]
    (.range s)))
 
+(def byte-array-class (class (byte-array 0)))
 
 (defn ^"[B" pack
   "Gets the key encoding the prefix used for this Subspace.
@@ -41,11 +42,12 @@
   suffix."
   ([^Subspace s]
    (.pack s))
-  ([^Subspace s t]
+  ([^Subspace s k]
    (cond
-     (instance? Tuple t) (.pack s ^Tuple t)
-     (vector? t) (.pack s ^Tuple (ftup/create t))
-     :else (.pack s ^Tuple (ftup/from t)))))
+     (instance? byte-array-class k) (.pack s k)
+     (instance? Tuple k) (.pack s ^Tuple k)
+     (vector? k) (.pack s ^Tuple (ftup/create k))
+     :else (.pack s ^Tuple (ftup/from k)))))
 
 
 (defn ^Tuple unpack
