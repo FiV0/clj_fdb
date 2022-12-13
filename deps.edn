@@ -1,0 +1,18 @@
+{:paths ["src"]
+
+ :deps
+ {org.foundationdb/fdb-java           {:mvn/version "6.3.23"}
+  org.clojure/clojure                 {:mvn/version "1.11.1"}}
+
+ :aliases
+ {:dev
+  {:extra-paths ["dev" ]
+   :extra-deps  {com.lambdaisland/classpath     {:mvn/version "0.0.27"}}}
+
+  :test
+  {:extra-paths ["test"]
+   :extra-deps  {}}}
+
+ :mvn/repos
+ {"central"        {:url "https://repo1.maven.org/maven2/"}
+  "clojars"        {:url "https://clojars.org/repo"}}}
