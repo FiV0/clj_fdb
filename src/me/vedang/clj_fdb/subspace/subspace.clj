@@ -5,10 +5,13 @@
            com.apple.foundationdb.subspace.Subspace
            com.apple.foundationdb.tuple.Tuple))
 
+(def ^:private byte-array-class (class (byte-array 0)))
+
 (defn ^Subspace create
   "Constructor for a subspace formed with the specified prefix Tuple."
   ([prefix]
    (cond
+     (instance? byte-array-class prefix) (Subspace. prefix)
      (vector? prefix) (Subspace. (ftup/create prefix))
      (instance? Tuple prefix) (Subspace. ^Tuple prefix)
      :else (throw (IllegalArgumentException.
@@ -33,7 +36,6 @@
   ([^Subspace s]
    (.range s)))
 
-(def byte-array-class (class (byte-array 0)))
 
 (defn ^"[B" pack
   "Gets the key encoding the prefix used for this Subspace.
