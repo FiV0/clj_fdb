@@ -146,15 +146,16 @@
                        (partial fimpl/decode (or s k))
                        fimpl/decode)
          keyfn (comp (:keyfn opts identity) key-decoder)
-         valfn (comp (:valfn opts identity) fimpl/decode)]
+         valfn (comp (:valfn opts identity) fimpl/decode)
+         empty-coll (or (empty (:coll opts)) {})]
      (ftr/read tc
                (fn [^Transaction tr]
-                 (reduce (fn [acc ^KeyValue kv]
-                           (assoc acc
-                                  (keyfn (.getKey kv))
-                                  (valfn (.getValue kv))))
-                         {}
-                         (ftr/get-range tr rg)))))))
+                 (-> (reduce (fn [acc ^KeyValue kv]
+                               (conj! acc [(keyfn (.getKey kv))
+                                           (valfn (.getValue kv))]))
+                             (transient empty-coll)
+                             (ftr/get-range tr rg))
+                     persistent!))))))
 
 (defn get-range2
   ([^TransactionContext tc begin end]
