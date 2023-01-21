@@ -139,6 +139,8 @@
   - `limit` : limit the number of returned tuples
   - `skip`  : skip a number of keys from the beginning of the range
               (currently only works with KeySelectors)
+  - `coll` : A collection of the type into which the result should be
+  accumulated.
 
   Note that the byte-arrays are always sent through the `fimpl/decode`
   function first. (So if you have stored a Tuple in FDB, the `valfn`
@@ -164,15 +166,16 @@
          keyfn (cond->> key-decoder
                  keyfn (comp keyfn))
          valfn (cond->> fimpl/decode
-                 valfn (comp valfn))]
+                 valfn (comp valfn))
+         empty-coll (or (empty (:coll opts)) {})]
      (ftr/read tc
                (fn [^Transaction tr]
-                 (reduce (fn [acc ^KeyValue kv]
-                           (assoc acc
-                                  (keyfn (.getKey kv))
-                                  (valfn (.getValue kv))))
-                         {}
-                         (apply ftr/get-range tr range-args)))))))
+                 (persistent!
+                  (reduce (fn [acc ^KeyValue kv]
+                            (conj! acc [(keyfn (.getKey kv))
+                                        (valfn (.getValue kv))]))
+                          (transient empty-coll)
+                          (apply ftr/get-range tr range-args))))))))
 
 (defn get-range2
   ([^TransactionContext tc begin end]
@@ -196,6 +199,7 @@
                            (if limit
                              (ftr/get-range tr begin end limit)
                              (ftr/get-range tr begin end))))))))
+
 
 (defn clear-range
   "Takes the following:
